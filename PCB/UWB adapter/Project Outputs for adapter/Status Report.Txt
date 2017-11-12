@@ -1,0 +1,10 @@
+Output: Protel
+Type  : ProtelNetlist
+From  : Project [adapter.PrjPCB]
+   Generated File[adapter.NET]
+
+
+Files Generated   : 1
+Documents Printed : 0
+
+Finished Output Generation At 2:45:34 PM On 10/08/2017
