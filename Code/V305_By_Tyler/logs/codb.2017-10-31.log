@@ -1,0 +1,25 @@
+15:29:20.322 [Worker-25] ERROR org.coocox.codb.common.log.ErrorLog - getBoardAssociationsByBoardId API failed allassociations
+Connection timed out: connect
+java.net.PlainSocketImpl.socketConnect(Native Method)
+java.net.PlainSocketImpl.doConnect(Unknown Source)
+java.net.PlainSocketImpl.connectToAddress(Unknown Source)
+java.net.PlainSocketImpl.connect(Unknown Source)
+java.net.SocksSocketImpl.connect(Unknown Source)
+java.net.Socket.connect(Unknown Source)
+sun.net.NetworkClient.doConnect(Unknown Source)
+sun.net.www.http.HttpClient.openServer(Unknown Source)
+sun.net.www.http.HttpClient.openServer(Unknown Source)
+sun.net.www.http.HttpClient.<init>(Unknown Source)
+sun.net.www.http.HttpClient.New(Unknown Source)
+sun.net.www.http.HttpClient.New(Unknown Source)
+sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient(Unknown Source)
+sun.net.www.protocol.http.HttpURLConnection.plainConnect(Unknown Source)
+sun.net.www.protocol.http.HttpURLConnection.connect(Unknown Source)
+org.coocox.codb.common.util.URLConnUtil.doGet(URLConnUtil.java:59)
+org.coocox.codb.client.core.api.impl.BoardApiImpl.getAllBoardAssociations(BoardApiImpl.java:306)
+org.coocox.component.board.ui.actions.AbstractRefreshBoardAction.initUpdateData(AbstractRefreshBoardAction.java:153)
+org.coocox.component.board.ui.actions.AbstractRefreshBoardAction.doThings(AbstractRefreshBoardAction.java:67)
+org.coocox.common.ui.action.AbstractRefreshAction$3.run(AbstractRefreshAction.java:165)
+org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+
