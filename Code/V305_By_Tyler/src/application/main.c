@@ -16,10 +16,12 @@
 
 #include "instance.h"
 
+
 #include "deca_types.h"
 
 #include "deca_spi.h"
 #include "stdio.h"
+#include "stdint.h"
 
 extern void usb_run(void);
 extern int usb_init(void);
@@ -34,9 +36,9 @@ extern void send_usbmessage(uint8*, int);
 
 #define SWS1_SRM_MODE 0x80  //slow ranging mode with PC - response is configurable and > 150 ms
 #define SWS1_ANC_MODE 0x08  //anchor mode
-#define SWS1_SHF_MODE 0x10	//short frame mode (6.81M) (switch S1-5)
-#define SWS1_64M_MODE 0x20	// 64M PRF mode (switch S1-6)
-#define SWS1_CH5_MODE 0x40	//channel 5 mode (switch S1-7)
+#define SWS1_SHF_MODE 0x10  //short frame mode (6.81M) (switch S1-5)
+#define SWS1_64M_MODE 0x20  // 64M PRF mode (switch S1-6)
+#define SWS1_CH5_MODE 0x40  //channel 5 mode (switch S1-7)
 
 int instance_anchaddr = 0; //0 = 0xDECA020000000001; 1 = 0xDECA020000000002; 2 = 0xDECA020000000003
 //NOTE: switches TA_SW1_7 and TA_SW1_8 are used to set tag/anchor address
@@ -47,7 +49,16 @@ int instance_mode = ANCHOR;
 //int instance_mode = TAG_TDOA;
 //int instance_mode = LISTENER;
 
-uint8 s1switch = 0;
+
+//NOTE: Set s1switch value to select work mode.
+//NOTE: Will use TA_SW1_4 to set the working mode of Module.
+//uint8 s1switch = 0;
+uint8 s1switch = 0x25;  //mode = tag
+//uint8 s1switch = 0x2D;  //mode = anchor node.
+
+
+
+
 int chan, tagaddr, ancaddr;
 
 #define LCD_BUFF_LEN (100)
@@ -298,8 +309,8 @@ void process_deca_irq(void)
 #else
 void process_deca_irq(void)
 {
-	while(dwt_checkIRQ() == 1)
-	{
+  while(dwt_checkIRQ() == 1)
+  {
         instance_process_irq(0);
     } //while IRQ line active
 
@@ -338,85 +349,85 @@ const switch_handler_t switch_fn[] ={ is_button_low, \
  * @fn test_application_run
  * @brief   test application for production pre-test procedure
 **/
-void test_application_run(void)
-{
-    char  dataseq[2][40];
-    uint8 j, switchStateOn, switchStateOff;
-
-    switchStateOn=0;
-    switchStateOff=0;
-
-    led_on(LED_ALL);    // show all LED OK
-    Sleep(1000);
-
-    dataseq[0][0] = 0x1 ;  //clear screen
-    writetoLCD( 1, 0, (const uint8 *) &dataseq);
-    dataseq[0][0] = 0x2 ;  //return cursor home
-    writetoLCD( 1, 0, (const uint8 *) &dataseq);
-
-/* testing SPI to DW1000*/
-    writetoLCD( 40, 1, (const uint8 *) "TESTING         ");
-    writetoLCD( 40, 1, (const uint8 *) "SPI, U2, S2, S3 ");
-    Sleep(1000);
-
-    if(inittestapplication(s1switch) == (uint32)-1)
-    {
-        writetoLCD( 40, 1, (const uint8 *) "SPI, U2, S2, S3 ");
-        writetoLCD( 40, 1, (const uint8 *) "-- TEST FAILS --");
-        while(1); //stop
-    }
-
-    writetoLCD( 40, 1, (const uint8 *) "SPI, U2, S2, S3 ");
-    writetoLCD( 40, 1, (const uint8 *) "    TEST OK     ");
-    Sleep(1000);
-
-/* testing of switch S2 */
-    dataseq[0][0] = 0x1 ;  //clear screen
-    writetoLCD( 1, 0, (const uint8 *) &dataseq);
-
-    while( (switchStateOn & switchStateOff) != switch_mask )
-        {
-        memset(&dataseq, ' ', sizeof(dataseq));
-        strcpy(&dataseq[0][0], (const char *)"SWITCH");
-        strcpy(&dataseq[1][0], (const char *)"toggle");
-//switch 7-1
-        for (j=0;j<sizeof(switchbuf);j++)
-        {
-            if( switch_fn[j](switchbuf[j]) ) //execute current switch switch_fn
-            {
-                dataseq[0][8+j]='O';
-                switchStateOn |= 0x01<<j;
-                switchStateOff &= ~(0x01<<j);//all switches finaly should be in off state
-            }else{
-                dataseq[1][8+j]='O';
-                switchStateOff |=0x01<<j;
-        }
-        }
-
-        writetoLCD(40, 1, (const uint8 *) &dataseq[0][0]);
-        writetoLCD(40, 1, (const uint8 *) &dataseq[1][0]);
-        Sleep(100);
-        }
-
-    led_off(LED_ALL);
-
-    writetoLCD( 40, 1, (const uint8 *) "  Preliminary   ");
-    writetoLCD( 40, 1, (const uint8 *) "   TEST OKAY    ");
-
-    while(1);
-    }
+//void test_application_run(void)
+//{
+//    char  dataseq[2][40];
+//    uint8 j, switchStateOn, switchStateOff;
+//
+//    switchStateOn=0;
+//    switchStateOff=0;
+//
+//    led_on(LED_ALL);    // show all LED OK
+//    Sleep(1000);
+//
+//    dataseq[0][0] = 0x1 ;  //clear screen
+//    writetoLCD( 1, 0, (const uint8 *) &dataseq);
+//    dataseq[0][0] = 0x2 ;  //return cursor home
+//    writetoLCD( 1, 0, (const uint8 *) &dataseq);
+//
+///* testing SPI to DW1000*/
+//    writetoLCD( 40, 1, (const uint8 *) "TESTING         ");
+//    writetoLCD( 40, 1, (const uint8 *) "SPI, U2, S2, S3 ");
+//    Sleep(1000);
+//
+//    if(inittestapplication(s1switch) == (uint32)-1)
+//    {
+//        writetoLCD( 40, 1, (const uint8 *) "SPI, U2, S2, S3 ");
+//        writetoLCD( 40, 1, (const uint8 *) "-- TEST FAILS --");
+//        while(1); //stop
+//    }
+//
+//    writetoLCD( 40, 1, (const uint8 *) "SPI, U2, S2, S3 ");
+//    writetoLCD( 40, 1, (const uint8 *) "    TEST OK     ");
+//    Sleep(1000);
+//
+///* testing of switch S2 */
+//    dataseq[0][0] = 0x1 ;  //clear screen
+//    writetoLCD( 1, 0, (const uint8 *) &dataseq);
+//
+//    while( (switchStateOn & switchStateOff) != switch_mask )
+//        {
+//        memset(&dataseq, ' ', sizeof(dataseq));
+//        strcpy(&dataseq[0][0], (const char *)"SWITCH");
+//        strcpy(&dataseq[1][0], (const char *)"toggle");
+////switch 7-1
+//        for (j=0;j<sizeof(switchbuf);j++)
+//        {
+//            if( switch_fn[j](switchbuf[j]) ) //execute current switch switch_fn
+//            {
+//                dataseq[0][8+j]='O';
+//                switchStateOn |= 0x01<<j;
+//                switchStateOff &= ~(0x01<<j);//all switches finaly should be in off state
+//            }else{
+//                dataseq[1][8+j]='O';
+//                switchStateOff |=0x01<<j;
+//        }
+//        }
+//
+//        writetoLCD(40, 1, (const uint8 *) &dataseq[0][0]);
+//        writetoLCD(40, 1, (const uint8 *) &dataseq[1][0]);
+//        Sleep(100);
+//        }
+//
+//    led_off(LED_ALL);
+//
+//    writetoLCD( 40, 1, (const uint8 *) "  Preliminary   ");
+//    writetoLCD( 40, 1, (const uint8 *) "   TEST OKAY    ");
+//
+//    while(1);
+//    }
 
 
 void setLCDline1(uint8 s1switch)
 {
-	uint8 command = 0x2 ;  //return cursor home
+  uint8 command = 0x2 ;  //return cursor home
     writetoLCD( 1, 0,  &command);
 
-	sprintf((char*)&dataseq[0], "DecaRanging  %02x", s1switch);
-	writetoLCD( 40, 1, dataseq); //send some data
+  sprintf((char*)&dataseq[0], "DecaRanging  %02x", s1switch);
+  writetoLCD( 40, 1, dataseq); //send some data
 
-	sprintf((char*)&dataseq1[0], "                 ");
-	writetoLCD( 16, 1, dataseq1); //send some data
+  sprintf((char*)&dataseq1[0], "                 ");
+  writetoLCD( 16, 1, dataseq1); //send some data
 }
 
 /*
@@ -453,65 +464,62 @@ int main(void)
     Sleep(1000);
 #endif
 
-    s1switch = is_button_low(0) << 1 // is_switch_on(TA_SW1_2) << 2
-    		| is_switch_on(TA_SW1_3) << 2
-    		| is_switch_on(TA_SW1_4) << 3
-    		| is_switch_on(TA_SW1_5) << 4
-		    | is_switch_on(TA_SW1_6) << 5
-    		| is_switch_on(TA_SW1_7) << 6
-    		| is_switch_on(TA_SW1_8) << 7;
+
+//    s1switch = s1switch  | is_switch_on(TA_SW1_4) << 3;
+
 
     port_DisableEXT_IRQ(); //disable ScenSor IRQ until we configure the device
 
-    //test EVB1000 - used in EVK1000 production
-    if((is_button_low(0) == S1_SWITCH_ON) && (is_switch_on(TA_SW1_8) == S1_SWITCH_ON)) //using BOOT1 switch for test
-    {
-        test_application_run(); //does not return....
-    }
-    else
-    if(is_switch_on(TA_SW1_3) == S1_SWITCH_OFF)
-    {
-        int j = 1000000;
-        uint8 command;
-
-        memset(dataseq, 0, LCD_BUFF_LEN);
-
-        while(j--);
-        //command = 0x1 ;  //clear screen
-        //writetoLCD( 1, 0,  &command);
-        command = 0x2 ;  //return cursor home
-        writetoLCD( 1, 0,  &command);
-
-        memcpy(dataseq, (const uint8 *) "DECAWAVE   ", 12);
-        writetoLCD( 40, 1, dataseq); //send some data
-#ifdef USB_SUPPORT //this is set in the port.h file
-        memcpy(dataseq, (const uint8 *) "USB to SPI ", 12);
-#else
-#endif
-        writetoLCD( 16, 1, dataseq); //send some data
-
-        j = 1000000;
-
-        while(j--);
-
-        command = 0x2 ;  //return cursor home
-        writetoLCD( 1, 0,  &command);
-#ifdef USB_SUPPORT //this is set in the port.h file
-        // enable the USB functionality
-        //usb_init();
-
-        NVIC_DisableDECAIRQ();
-
-        // Do nothing in foreground -- allow USB application to run, I guess on the basis of USB interrupts?
-        while (1)       // loop forever
-        {
-            usb_run();
-        }
-#endif
-        return 1;
-    }
-    else //run DecaRanging application
-    {
+//    //test EVB1000 - used in EVK1000 production
+//    if((is_button_low(0) == S1_SWITCH_ON) && (is_switch_on(TA_SW1_8) == S1_SWITCH_ON)) //using BOOT1 switch for test
+//
+//    {
+//        test_application_run(); //does not return....
+//    }
+//    else
+//    if(is_switch_on(TA_SW1_3) == S1_SWITCH_OFF)
+//    {
+//        int j = 1000000;
+//        uint8 command;
+//
+//        memset(dataseq, 0, LCD_BUFF_LEN);
+//
+//        while(j--);
+//        //command = 0x1 ;  //clear screen
+//        //writetoLCD( 1, 0,  &command);
+//        command = 0x2 ;  //return cursor home
+//        writetoLCD( 1, 0,  &command);
+//
+//        memcpy(dataseq, (const uint8 *) "DECAWAVE   ", 12);
+//        writetoLCD( 40, 1, dataseq); //send some data
+//#ifdef USB_SUPPORT //this is set in the port.h file
+//        memcpy(dataseq, (const uint8 *) "USB to SPI ", 12);
+//#else
+//#endif
+//        writetoLCD( 16, 1, dataseq); //send some data
+//
+//        j = 1000000;
+//
+//        while(j--);
+//
+//        command = 0x2 ;  //return cursor home
+//        writetoLCD( 1, 0,  &command);
+//#ifdef USB_SUPPORT //this is set in the port.h file
+//        // enable the USB functionality
+//        //usb_init();
+//
+//        NVIC_DisableDECAIRQ();
+//
+//        // Do nothing in foreground -- allow USB application to run, I guess on the basis of USB interrupts?
+//        while (1)       // loop forever
+//        {
+//            usb_run();
+//        }
+//#endif
+//        return 1;
+//    }
+//    else //run DecaRanging application
+//    {
         uint8 dataseq[LCD_BUFF_LEN];
         uint8 command = 0x0;
 
@@ -570,22 +578,22 @@ int main(void)
 
         if(instance_mode == TAG)
         {
-            //if TA_SW1_2 is on use fast ranging (fast 2wr)
-            if(is_button_low(0) == S1_SWITCH_ON)
-            {
-                memcpy(&dataseq[2], (const uint8 *) " Fast Tag   ", 12);
-                writetoLCD( 40, 1, dataseq); //send some data
-                memcpy(&dataseq[2], (const uint8 *) "   Ranging  ", 12);
-                writetoLCD( 16, 1, dataseq); //send some data
-            }
-            else
-            {
+//            //if TA_SW1_2 is on use fast ranging (fast 2wr)
+//            if(is_button_low(0) == S1_SWITCH_ON)
+//            {
+//                memcpy(&dataseq[2], (const uint8 *) " Fast Tag   ", 12);
+//                writetoLCD( 40, 1, dataseq); //send some data
+//                memcpy(&dataseq[2], (const uint8 *) "   Ranging  ", 12);
+//                writetoLCD( 16, 1, dataseq); //send some data
+//            }
+//            else
+//            {
                 memcpy(&dataseq[2], (const uint8 *) " TAG BLINK  ", 12);
 
                 writetoLCD( 40, 1, dataseq); //send some data
                 sprintf((char*)&dataseq[0], "%llX", instance_get_addr());
                 writetoLCD( 16, 1, dataseq); //send some data
-            }
+//            }
         }
         else
         {
@@ -597,7 +605,7 @@ int main(void)
 
         command = 0x2 ;  //return cursor home
         writetoLCD( 1, 0,  &command);
-    }
+//    }
 #if (DWINTERRUPT_EN == 1)
     port_EnableEXT_IRQ(); //enable ScenSor IRQ before starting
 #endif
@@ -613,7 +621,7 @@ int main(void)
     while(1)
     {
 #if (DWINTERRUPT_EN == 0)
-    	process_deca_irq(); //poll DW1000 IRQ line when using polling of interrupt line
+      process_deca_irq(); //poll DW1000 IRQ line when using polling of interrupt line
 #endif
         instance_run();
 
@@ -622,24 +630,24 @@ int main(void)
         //if tag handle as a timeout
         if((instance_data[0].monitor == 1) && ((portGetTickCnt() - instance_data[0].timeofTx) > instance_data[0].finalReplyDelay_ms))
         {
-			instance_data[0].wait4ack = 0;
+              instance_data[0].wait4ack = 0;
 
-			if(instance_mode == TAG)
-			{
-				inst_processrxtimeout(&instance_data[0]);
-			}
-			else //if(instance_mode == ANCHOR)
-			{
-				dwt_forcetrxoff();	//this will clear all events
-				//enable the RX
-				instance_data[0].testAppState = TA_RXE_WAIT ;
-			}
-			instance_data[0].monitor = 0;
+              if(instance_mode == TAG)
+              {
+                inst_processrxtimeout(&instance_data[0]);
+              }
+              else //if(instance_mode == ANCHOR)
+              {
+                dwt_forcetrxoff();  //this will clear all events
+                //enable the RX
+                instance_data[0].testAppState = TA_RXE_WAIT ;
+              }
+              instance_data[0].monitor = 0;
         }
 
         if(instancenewrange())
         {
-        	int n, l = 0, /*txl = 0, rxl = 0,*/ aaddr, taddr, txa, rxa, rng, rng_raw;
+            int n, l = 0, /*txl = 0, rxl = 0,*/ aaddr, taddr, txa, rxa, rng, rng_raw;
             ranging = 1;
             //send the new range information to LCD and/or USB
             range_result = instance_get_idist();
@@ -670,13 +678,13 @@ int main(void)
             if(instance_mode == TAG)
             {
                 //n = sprintf((char*)&dataseq[0], "ia%04x t%04x %04x %04x %04x %04x %04x %02x %02x t", aaddr, taddr, rng, rng_raw, l, txa, rxa, txl, rxl);
-            	n = sprintf((char*)&dataseq[0], "ia%04x t%04x %08x %08x %04x %04x %04x t", aaddr, taddr, rng, rng_raw, l, txa, rxa);
+              n = sprintf((char*)&dataseq[0], "ia%04x t%04x %08x %08x %04x %04x %04x t", aaddr, taddr, rng, rng_raw, l, txa, rxa);
             }
             else
             {
                 //n = sprintf((char*)&dataseq[0], "ia%04x t%04x %04x %04x %04x %04x %04x %02x %02x a", aaddr, taddr, rng, rng_raw, l, txa, rxa, txl, rxl);
-            	//n = sprintf((char*)&dataseq[0], "ia%04x t%04x %08x %08x %04x %04x %04x %2.2f a", aaddr, taddr, rng, rng_raw, l, txa, rxa, instance_data[0].clockOffset);
-            	n = sprintf((char*)&dataseq[0], "ia%04x t%04x %08x %08x %04x %04x %04x a", aaddr, taddr, rng, rng_raw, l, txa, rxa);
+              //n = sprintf((char*)&dataseq[0], "ia%04x t%04x %08x %08x %04x %04x %04x %2.2f a", aaddr, taddr, rng, rng_raw, l, txa, rxa, instance_data[0].clockOffset);
+              n = sprintf((char*)&dataseq[0], "ia%04x t%04x %08x %08x %04x %04x %04x a", aaddr, taddr, rng, rng_raw, l, txa, rxa);
             }
 #ifdef USB_SUPPORT //this is set in the port.h file
             send_usbmessage(&dataseq[0], n);
@@ -685,8 +693,8 @@ int main(void)
 #ifdef USART_SUPPORT
             {
 
-            	//printf2("R= %i mm\r\n",rng);
-            	printf2("R= %-3.2f m\r\n",range_result);
+              //printf2("R= %i mm\r\n",rng);
+              printf2("R= %-3.2f m\r\n",range_result);
             }
 #endif
         }
@@ -694,21 +702,21 @@ int main(void)
 #ifdef USART_SUPPORT
         {
         int nrm = 0;
-			if(nrm = instancenorange())
-			{
-				if(nrm == 1)
-				{
-					printf2("I= No Response\r\n");
-				}
-				else if(nrm == 2)
-				{
-					printf2("I= No Report\r\n");
-				}
-				else if(nrm == 3)
-				{
-					printf2("I= No Final\r\n");
-				}
-			}
+      if(nrm = instancenorange())
+      {
+        if(nrm == 1)
+        {
+          printf2("I= No Response\r\n");
+        }
+        else if(nrm == 2)
+        {
+          printf2("I= No Report\r\n");
+        }
+        else if(nrm == 3)
+        {
+          printf2("I= No Final\r\n");
+        }
+      }
         }
 #endif
 
@@ -798,6 +806,3 @@ int main(void)
 
     return 0;
 }
-
-
-

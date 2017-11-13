@@ -17,9 +17,13 @@
 extern "C" {
 #endif
 
+
 //#include "instance_sws.h"
 #include "deca_types.h"
 #include "deca_device_api.h"
+
+
+extern uint8 anchorNum;
 
 /******************************************************************************************************************
 ********************* NOTES on DW (MP) features/options ***********************************************************
@@ -112,9 +116,12 @@ enum
 
 #define BLINK_FRAME_CONTROL_BYTES       (1)
 #define BLINK_FRAME_SEQ_NUM_BYTES       (1)
+
+#define BLINK_FRAME_ANCHORNODE_NUM_BYTES (1)   //add anchornode_Num, so that the tag can select which anchor node to start range measurement.
+
 #define BLINK_FRAME_CRC					(FRAME_CRC)
 #define BLINK_FRAME_SOURCE_ADDRESS      (ADDR_BYTE_SIZE_L)
-#define BLINK_FRAME_CTRLP				(BLINK_FRAME_CONTROL_BYTES + BLINK_FRAME_SEQ_NUM_BYTES) //2
+#define BLINK_FRAME_CTRLP				(BLINK_FRAME_CONTROL_BYTES + BLINK_FRAME_SEQ_NUM_BYTES + BLINK_FRAME_ANCHORNODE_NUM_BYTES) //3
 #define BLINK_FRAME_CRTL_AND_ADDRESS    (BLINK_FRAME_SOURCE_ADDRESS + BLINK_FRAME_CTRLP) //10 bytes
 #define BLINK_FRAME_LEN_BYTES           (BLINK_FRAME_CRTL_AND_ADDRESS + BLINK_FRAME_CRC)
 
@@ -301,6 +308,16 @@ typedef struct
     uint8 fcs[2] ;                              	//  10-11  we allow space for the CRC as it is logically part of the message. However ScenSor TX calculates and adds these bytes.
 } iso_IEEE_EUI64_blink_msg ;
 
+//13 octets for Minimum IEEE ID blink
+typedef struct
+{
+    uint8 frameCtrl;                         		//  frame control bytes 00
+    uint8 seqNum;                               	//  sequence_number 01
+    uint8 anchornode_Num;                           //  sequence number of anchor node. 02
+    uint8 tagID[BLINK_FRAME_SOURCE_ADDRESS];        //  03-10 64 bit address
+    uint8 fcs[2] ;                              	//  11-12  we allow space for the CRC as it is logically part of the message. However ScenSor TX calculates and adds these bytes.
+} iso_IEEE_EUI64_blinktyler_msg ;
+
 //18 octets for IEEE ID blink with Temp and Vbat values
 typedef struct
 {
@@ -377,7 +394,8 @@ typedef struct
 			srd_msg_dlss rxmsg_ls ;
 			srd_msg_dsss rxmsg_ss ; //16 bit addresses
 			ack_msg rxackmsg ; //holds received ACK frame
-			iso_IEEE_EUI64_blink_msg rxblinkmsg;
+			//iso_IEEE_EUI64_blink_msg rxblinkmsg;
+            iso_IEEE_EUI64_blinktyler_msg rxblinkmsg;
 			iso_IEEE_EUI64_blinkdw_msg rxblinkmsgdw;
 	}msgu;
 
@@ -459,7 +477,9 @@ typedef struct
 	srd_msg_dlss rng_initmsg ;  // ranging init message (destination long, source short)
     srd_msg_dsss msg ;			// simple 802.15.4 frame structure (used for tx message) - using short addresses
 #endif
-	iso_IEEE_EUI64_blink_msg blinkmsg ; // frame structure (used for tx blink message)
+	//iso_IEEE_EUI64_blinkt_msg blinkmsg ; // frame structure (used for tx blink message)
+    iso_IEEE_EUI64_blinktyler_msg blinkmsg;
+    
 
 //messages used in "fast" ranging ...
 	srd_msg_dlss rnmsg ; // ranging init message structure
@@ -574,7 +594,7 @@ typedef struct
 
 // function to calculate and report the Time of Flight to the GUI/display
 void reportTOF(instance_data_t *inst);
-// clear the status/ranging data 
+// clear the status/ranging data
 void instanceclearcounts(void) ;
 void instcleartaglist(void);
 void instsettagtorangewith(int tagID);
@@ -590,7 +610,7 @@ void setupmacframedata(instance_data_t *inst, int fcode);
 
 // opent the SPI Cheetah interface - called from inittestapplication()
 int instancespiopen(void) ;  // Open SPI and return handle
-// close the SPI Cheetah interface  
+// close the SPI Cheetah interface
 void instance_close(void);
 // Call init, then call config, then call run. call close when finished
 // initialise the instance (application) structures and DW1000 device
@@ -598,7 +618,7 @@ int instance_init(void);
 int instance_init_s(int mode);
 
 // configure the instance and DW1000 device
-void instance_config(instanceConfig_t *config) ;  
+void instance_config(instanceConfig_t *config) ;
 
 void instancerxon(instance_data_t *inst, int delayed, uint64 delayedReceiveTime);
 void inst_processackmsg(instance_data_t *inst, uint8 seqNum);
@@ -627,7 +647,7 @@ void instancesetreplydelay(int datalength);
 void instance_init_timings(void);
 
 // set/get the instance roles e.g. Tag/Anchor/Listener
-void instancesetrole(int mode) ;                // 
+void instancesetrole(int mode) ;                //
 int instancegetrole(void) ;
 // get the DW1000 device ID (e.g. 0xDECA0130 for MP)
 uint32 instancereaddeviceid(void) ;                                 // Return Device ID reg, enables validation of physical device presence

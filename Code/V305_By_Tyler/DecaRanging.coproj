@@ -7,6 +7,7 @@
         <Option name="OptimizationLevel" value="0"/>
         <Option name="UseFPU" value="0"/>
         <Option name="UserEditCompiler" value="-ffunction-sections; -fdata-sections; -c; -fmessage-length=0;"/>
+        <Option name="SupportCPlusplus" value="1"/>
         <Includepaths>
           <Includepath path="."/>
           <Includepath path="Libraries/CMSIS/CM3/CoreSupport"/>
@@ -30,6 +31,7 @@
           <Define name="__ASSEMBLY__"/>
           <Define name="STM32F107VC"/>
           <Define name="STM32F10X_CL"/>
+          <Define name="SUPPORT_CPLUSPLUS"/>
         </DefinedSymbols>
       </Compile>
       <Link useDefault="0">
@@ -40,7 +42,7 @@
         <Option name="IsNewStartupCode" value="1"/>
         <Option name="Library" value="Use base C Library"/>
         <Option name="nostartfiles" value="0"/>
-        <Option name="UserEditLinker" value=""/>
+        <Option name="UserEditLinker" value="-lstdc++; "/>
         <Option name="Printf" value="1"/>
         <Option name="Scanf" value="1"/>
         <LinkedLibraries/>

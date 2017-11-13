@@ -15,6 +15,7 @@
 #include "deca_device_api.h"
 #include "deca_spi.h"
 
+
 #include "instance.h"
 
 
@@ -28,7 +29,10 @@ double inst_idist = 0;
 double inst_idistraw = 0;
 double inst_adist = 0;
 double inst_ldist = 0;
+
 instance_data_t instance_data[NUM_INST] ;
+uint8 anchorNum = 1;
+
 
 instance_localdata_t instance_localdata[NUM_INST] ;
 
@@ -823,6 +827,9 @@ void instance_rxcallback(const dwt_callback_data_t *rxd)
 				{
 					rxd_event = SIG_RX_BLINK;
 				}
+				else if (rxd->datalength == 13){
+					rxd_event = SIG_RX_BLINK;
+				}
 				else if(rxd->datalength == 18)//blink with Temperature and Battery level indication
 				{
 					rxd_event = SIG_RX_BLINK;
@@ -849,7 +856,7 @@ void instance_rxcallback(const dwt_callback_data_t *rxd)
 					fcode_index = FRAME_CRTL_AND_ADDRESS_S; //function code is in first byte after source address
 					srcAddr_index = FRAME_CTRLP + ADDR_BYTE_SIZE_S;
 				}
-				else if((rxd->fctrl[1] & 0xCC) == 0xCC) //dest & src long (64 bits)
+				else if((rxd->fctrl[1] & 0xCC) == 0xCC) //dest & src long (64 bits)  //decawave only used Long dest & src address
 				{
 					fcode_index = FRAME_CRTL_AND_ADDRESS_L; //function code is in first byte after source address
 					srcAddr_index = FRAME_CTRLP + ADDR_BYTE_SIZE_L;

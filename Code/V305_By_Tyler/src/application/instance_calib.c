@@ -21,7 +21,7 @@
 //the table is set for smart power - see below in the instance_config function how this is used when not using smart power
 const tx_struct txSpectrumConfig[8] =
 {
-	//Channel 0 ----- this is just a place holder so the next array element is channel 1
+  //Channel 0 ----- this is just a place holder so the next array element is channel 1
     {
             0x0,   //0
             {
@@ -31,7 +31,7 @@ const tx_struct txSpectrumConfig[8] =
     },
     //Channel 1
     {
-			0xc9,   //PG_DELAY
+      0xc9,   //PG_DELAY
             {
                     0x15355575, //16M prf power
                     0x07274767 //64M prf power
@@ -91,8 +91,8 @@ const tx_struct txSpectrumConfig[8] =
 //these are default antenna delays for EVB1000, these can be used if there is no calibration data in the DW1000,
 //or instead of the calibration data
 const uint16 rfDelays[2] = {
-		(uint16) ((DWT_PRF_16M_RFDLY/ 2.0) * 1e-9 / DWT_TIME_UNITS),//PRF 16
-		(uint16) ((DWT_PRF_64M_RFDLY/ 2.0) * 1e-9 / DWT_TIME_UNITS)
+    (uint16) ((DWT_PRF_16M_RFDLY/ 2.0) * 1e-9 / DWT_TIME_UNITS),//PRF 16
+    (uint16) ((DWT_PRF_64M_RFDLY/ 2.0) * 1e-9 / DWT_TIME_UNITS)
 };
 
 
@@ -105,153 +105,153 @@ extern instance_data_t instance_data[NUM_INST] ;
 
 int powertest(void)
 {
-	dwt_config_t    configData ;
-	dwt_txconfig_t  configTx ;
-	uint8 pow;
-	uint8 msg[127] = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the l"; 
-	
-	//NOTE: SPI frequency must be < 3MHz
-	//reduce the SPI speed before switching to XTAL
-	//
-	//	reset device 
-	//
-	dwt_softreset();
+  dwt_config_t    configData ;
+  dwt_txconfig_t  configTx ;
+  uint8 pow;
+  uint8 msg[127] = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the l";
 
-	//
-	//	configure channel paramters
-	//
+  //NOTE: SPI frequency must be < 3MHz
+  //reduce the SPI speed before switching to XTAL
+  //
+  //  reset device
+  //
+  dwt_softreset();
+
+  //
+  //  configure channel paramters
+  //
     configData.chan = 2 ;
     configData.rxCode =  9 ;
-	configData.txCode = 9 ;
+    configData.txCode = 9 ;
     configData.prf = DWT_PRF_64M ;
     configData.dataRate = DWT_BR_110K ;
     configData.txPreambLength = DWT_PLEN_2048 ;
     configData.rxPAC = DWT_PAC64 ;
     configData.nsSFD = 1 ;
-	configData.smartPowerEn = 0;
+  configData.smartPowerEn = 0;
 
-	dwt_configure(&configData, DWT_LOADANTDLY | DWT_LOADXTALTRIM) ;
+  dwt_configure(&configData, DWT_LOADANTDLY | DWT_LOADXTALTRIM) ;
 
-	configTx.PGdly = txSpectrumConfig[configData.chan].PGdelay ;
+  configTx.PGdly = txSpectrumConfig[configData.chan].PGdelay ;
 
-	if(configData.smartPowerEn == 0)
-	{
-		pow = txSpectrumConfig[configData.chan].txPwr[configData.prf - DWT_PRF_16M] & 0xFF ;
-		configTx.power = (pow | (pow << 8) | (pow << 16) | (pow << 24));
-	}
-	else
-	{
-		configTx.power = txSpectrumConfig[configData.chan].txPwr[configData.prf - DWT_PRF_16M];
-	}
+  if(configData.smartPowerEn == 0)
+  {
+    pow = txSpectrumConfig[configData.chan].txPwr[configData.prf - DWT_PRF_16M] & 0xFF ;
+    configTx.power = (pow | (pow << 8) | (pow << 16) | (pow << 24));
+  }
+  else
+  {
+    configTx.power = txSpectrumConfig[configData.chan].txPwr[configData.prf - DWT_PRF_16M];
+  }
 
-	dwt_configuretxrf(&configTx);
+  dwt_configuretxrf(&configTx);
 
-	// the value here 0x1000 gives a period of 32.82 µs
-	//this is setting 0x1000 as frame period (125MHz clock cycles) (time from Tx en - to next - Tx en)
-	dwt_configcontinuousframemode(0x1000);
+  // the value here 0x1000 gives a period of 32.82 ï¿½s
+  //this is setting 0x1000 as frame period (125MHz clock cycles) (time from Tx en - to next - Tx en)
+  dwt_configcontinuousframemode(0x1000);
 
-	dwt_writetxdata(127, (uint8 *)  msg, 0) ;
-	dwt_writetxfctrl(127, 0);
+  dwt_writetxdata(127, (uint8 *)  msg, 0) ;
+  dwt_writetxfctrl(127, 0);
 
     //to start the first frame - set TXSTRT
-	dwt_starttx(DWT_START_TX_IMMEDIATE); 
+  dwt_starttx(DWT_START_TX_IMMEDIATE);
 
-	//measure the power 
-	//Spectrum Analyser set:
-	//FREQ to be channel default e.g. 3.9936 GHz for channel 2
-	//SPAN to 1GHz
-	//SWEEP TIME 1s
-	//RBW and VBW 1MHz
-	//measure channel power
+  //measure the power
+  //Spectrum Analyser set:
+  //FREQ to be channel default e.g. 3.9936 GHz for channel 2
+  //SPAN to 1GHz
+  //SWEEP TIME 1s
+  //RBW and VBW 1MHz
+  //measure channel power
 
-	return DWT_SUCCESS ;
+  return DWT_SUCCESS ;
 }
 
 int instance_startcwmode(int chan)
 {
-	//NOTE: SPI frequency must be < 3MHz
-	//reduce the SPI speed before switching to XTAL
-	SPI_ConfigFastRate(SPI_BaudRatePrescaler_32); //reduce SPI to < 3MHz
+  //NOTE: SPI frequency must be < 3MHz
+  //reduce the SPI speed before switching to XTAL
+  SPI_ConfigFastRate(SPI_BaudRatePrescaler_32); //reduce SPI to < 3MHz
 
-	dwt_configcwmode(chan);
+  dwt_configcwmode(chan);
 
-	//measure the frequency
-	//Spectrum Analyser set:
-	//FREQ to be channel default e.g. 3.9936 GHz for channel 2
-	//SPAN to 10MHz
-	//PEAK SEARCH
+  //measure the frequency
+  //Spectrum Analyser set:
+  //FREQ to be channel default e.g. 3.9936 GHz for channel 2
+  //SPAN to 10MHz
+  //PEAK SEARCH
 
-	return  DWT_SUCCESS ;
+  return  DWT_SUCCESS ;
 }
 
 int instance_starttxtest(int framePeriod)
 {
-	//define some test data for the tx buffer
-	uint8 msg[127] = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the l"; 
-	
-	//NOTE: SPI frequency must be < 3MHz
+  //define some test data for the tx buffer
+  uint8 msg[127] = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the l";
 
-	// the value here 0x1000 gives a period of 32.82 µs
-	//this is setting 0x1000 as frame period (125MHz clock cycles) (time from Tx en - to next - Tx en)
-	dwt_configcontinuousframemode(framePeriod);
+  //NOTE: SPI frequency must be < 3MHz
 
-	dwt_writetxdata(127, (uint8 *)  msg, 0) ;
-	dwt_writetxfctrl(127, 0);
+  // the value here 0x1000 gives a period of 32.82 ï¿½s
+  //this is setting 0x1000 as frame period (125MHz clock cycles) (time from Tx en - to next - Tx en)
+  dwt_configcontinuousframemode(framePeriod);
+
+  dwt_writetxdata(127, (uint8 *)  msg, 0) ;
+  dwt_writetxfctrl(127, 0);
 
     //to start the first frame - set TXSTRT
-	dwt_starttx(DWT_START_TX_IMMEDIATE); 
+  dwt_starttx(DWT_START_TX_IMMEDIATE);
 
-	//measure the power 
-	//Spectrum Analyser set:
-	//FREQ to be channel default e.g. 3.9936 GHz for channel 2
-	//SPAN to 1GHz
-	//SWEEP TIME 1s
-	//RBW and VBW 1MHz
-	//measure channel power
+  //measure the power
+  //Spectrum Analyser set:
+  //FREQ to be channel default e.g. 3.9936 GHz for channel 2
+  //SPAN to 1GHz
+  //SWEEP TIME 1s
+  //RBW and VBW 1MHz
+  //measure channel power
 
-	return DWT_SUCCESS ;
+  return DWT_SUCCESS ;
 }
 
 void xtalcalibration(void)
 {
-	int i;
-	uint8 chan = 2 ;
-	uint8 prf = DWT_PRF_16M ;
-	dwt_txconfig_t  configTx ;
-	uint8 pow ;
-	
-	//NOTE: SPI frequency must be < 3MHz
-	//reduce the SPI speed before switching to XTAL
-	//
-	//	reset device 
-	//
-	dwt_softreset();
+  int i;
+  uint8 chan = 2 ;
+  uint8 prf = DWT_PRF_16M ;
+  dwt_txconfig_t  configTx ;
+  uint8 pow ;
 
-	//
-	//	configure TX channel parameters
-	//
+  //NOTE: SPI frequency must be < 3MHz
+  //reduce the SPI speed before switching to XTAL
+  //
+  //  reset device
+  //
+  dwt_softreset();
 
-	configTx.PGdly = txSpectrumConfig[chan].PGdelay ;
+  //
+  //  configure TX channel parameters
+  //
 
-	//Assume smart power is disabled - not relevant for XTAL trimming as CW mode
+  configTx.PGdly = txSpectrumConfig[chan].PGdelay ;
+
+  //Assume smart power is disabled - not relevant for XTAL trimming as CW mode
     pow = txSpectrumConfig[chan].txPwr[prf - DWT_PRF_16M] & 0xFF ;
-	configTx.power = (pow | (pow << 8) | (pow << 16) | (pow << 24));
+  configTx.power = (pow | (pow << 8) | (pow << 16) | (pow << 24));
 
-	dwt_configuretxrf(&configTx);
+  dwt_configuretxrf(&configTx);
 
-	dwt_configcwmode(chan);
+  dwt_configcwmode(chan);
 
-	for(i=0; i<=0x1F; i++)
-	{
-		dwt_xtaltrim(i);
-		//measure the frequency
-		//Spectrum Analyser set:
-		//FREQ to be channel default e.g. 3.9936 GHz for channel 2
-		//SPAN to 10MHz
-		//PEAK SEARCH
-	}
+  for(i=0; i<=0x1F; i++)
+  {
+    dwt_xtaltrim(i);
+    //measure the frequency
+    //Spectrum Analyser set:
+    //FREQ to be channel default e.g. 3.9936 GHz for channel 2
+    //SPAN to 10MHz
+    //PEAK SEARCH
+  }
 
-	return;
+  return;
 }
 
 /* ==========================================================

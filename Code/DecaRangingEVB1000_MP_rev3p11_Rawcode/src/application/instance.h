@@ -506,7 +506,7 @@ typedef struct
 
 // function to calculate and report the Time of Flight to the GUI/display
 int reportTOF(instance_data_t *inst);
-// clear the status/ranging data 
+// clear the status/ranging data
 void instanceclearcounts(void) ;
 void instcleartaglist(void);
 void instsettagtorangewith(int tagID);
@@ -526,7 +526,7 @@ int instance_init(void);
 int instance_init_s(int mode);
 
 // configure the instance and DW1000 device
-void instance_config(instanceConfig_t *config) ;  
+void instance_config(instanceConfig_t *config) ;
 
 void instancerxon(instance_data_t *inst, int delayed, uint64 delayedReceiveTime);
 void inst_processrxtimeout(instance_data_t *inst);

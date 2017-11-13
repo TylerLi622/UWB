@@ -20,6 +20,8 @@
 
 #include "instance.h"
 
+
+
 // -------------------------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -126,6 +128,7 @@ int testapprun_s(instance_data_t *inst, int message)
                 case TAG:
                 {
                 	int mode = 0;
+                	anchorNum = 1;
 
                     dwt_enableframefilter(DWT_FF_DATA_EN | DWT_FF_ACK_EN); //allow data, ACK frames;
                     inst->frameFilteringEnabled = 1 ;
@@ -333,6 +336,12 @@ int testapprun_s(instance_data_t *inst, int message)
                 //blink frames with IEEE EUI-64 tag ID
                 inst->blinkmsg.frameCtrl = 0xC5 ;
                 inst->blinkmsg.seqNum = inst->frame_sn++;
+                inst->blinkmsg.anchornode_Num = anchorNum;
+                anchorNum++;
+                if (anchorNum > ANCHOR_LIST_SIZE){
+                	anchorNum = 1;
+                }
+
 
 				dwt_writetxdata(flength, (uint8 *)  (&inst->blinkmsg), 0) ;	// write the frame data
 				dwt_writetxfctrl(flength, 0);
@@ -664,6 +673,16 @@ int testapprun_s(instance_data_t *inst, int message)
 
                         //add this Tag to the list of Tags we know about
 						instaddtagtolist(inst, &(dw_event->msgu.rxblinkmsg.tagID[0]));
+
+						if(anchorNum != dw_event->msgu.rxblinkmsg.anchornode_Num){
+
+		                    inst->testAppState = TA_RXE_WAIT ;
+		                    dwt_setrxtimeout(0);
+	                        inst->done = INST_NOT_DONE_YET;
+							inst->canprintinfo = 1;
+                    		break;
+						}
+
 
                         //initiate ranging message
                         if(inst->tagToRangeWith < TAG_LIST_SIZE)
@@ -1021,7 +1040,7 @@ int instance_init_s(int mode)
 
     dwt_setcallbacks(instance_txcallback, instance_rxcallback);
 
-    instance_setapprun(testapprun_s);
+    instance_setapprun(testapprun_s);  //testapprun_s returns inst->done,
 
     instance_data[instance].anchorListIndex = 0 ;
 
